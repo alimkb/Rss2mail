@@ -23,7 +23,7 @@ words = ['apple','best','stocks']
 items = []
 
 # Rss reader function
-def fetch_rss(addr) :
+def fetch_rss(addr, word) :
 	try:
 		r = requests.get(addr)
 		soup = BeautifulSoup(r.content, features='xml')
@@ -38,7 +38,10 @@ def fetch_rss(addr) :
 
 print('Starting scraping :')
 for i in urls:
-	print(fetch_rss(i))
+	items = fetch_rss(i, words)
+	for item in items:
+		print(item)
+		key = input('Press any key t continue ...')
 	
 print('--- Finished scraping ---')
 	
