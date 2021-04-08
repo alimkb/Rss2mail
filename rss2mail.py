@@ -23,11 +23,15 @@ words = ['apple','best','stocks']
 items = []
 
 # Rss reader function
-def fetch_rss(addr, word) :
+def fetch_rss(addr) :
 	try:
+		content = ''
 		r = requests.get(addr)
 		soup = BeautifulSoup(r.content, features='xml')
-		items = soup.findAll('item')
+		items = soup.find_all('item')
+		
+		
+		#content 
 		return items
 
 	except Exception as e:
@@ -36,12 +40,23 @@ def fetch_rss(addr, word) :
 
 
 
-print('Starting scraping :')
+# main
+print('------- Starting scraping :')
 for i in urls:
-	items = fetch_rss(i, words)
-	for item in items:
-		print(item)
-		key = input('Press any key t continue ...')
+	items = fetch_rss(i)
+	news_items = []
+	for item in items: 
+		news_item = {}
+		news_item['title'] = item.title.text
+		news_item['description'] = item.description
+		news_item['link'] = item.link.text
+		news_item['pubDate'] = item.pubDate.text
+		news_items.append(news_item)
+		 
+			
+for i in news_items:
+	if 'Blood' in i['title'] :
+		print(i)		
 	
-print('--- Finished scraping ---')
+
 	
