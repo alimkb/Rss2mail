@@ -13,12 +13,30 @@ import requests
 from bs4 import BeautifulSoup
 
 
-interval = 360 # in minutes
+
 
 urls = ['https://news.yahoo.com/rss/',
         'https://news.google.com/news/rss']
 
-words = ['apple','best','stocks']
+news_html = ''' <div>
+		<div style="background-color: #fffacc; padding: 5px;">
+		<div>
+		<h3><a href="{}" > {} </a></h3> 
+		</div>
+		</div>
+		<div style="background-color: #fffded; padding: 5px;">
+		 {} : {}  
+		</div>
+	    </div>'''
+
+html_file = ''' 
+	<html><head><title>Gathering News by title</title></head>
+	<body>
+	{}
+	</body>
+	</html>'''
+
+words = ['against']
 
 items = []
 
@@ -28,9 +46,7 @@ def fetch_rss(addr) :
 		content = ''
 		r = requests.get(addr)
 		soup = BeautifulSoup(r.content, features='xml')
-		items = soup.find_all('item')
-		
-		
+		items = soup.find_all('item')		
 		#content 
 		return items
 
@@ -41,22 +57,41 @@ def fetch_rss(addr) :
 
 
 # main
-print('------- Starting scraping :')
+print(' Starting scraping :')
+news_items = []
 for i in urls:
 	items = fetch_rss(i)
-	news_items = []
 	for item in items: 
 		news_item = {}
 		news_item['title'] = item.title.text
-		news_item['description'] = item.description
 		news_item['link'] = item.link.text
 		news_item['pubDate'] = item.pubDate.text
+		news_item['source'] = item.source.text
 		news_items.append(news_item)
-		 
-			
-for i in news_items:
-	if 'Blood' in i['title'] :
-		print(i)		
-	
 
+
+			
+
+# make html with specific keywords in news titles 
+html = ''
+if words :
+	for i in news_items:
+		if any(word in i['title'] for word in words):
+			html += news_html.format(i['link'],i['title'],i['source'],i['pubDate'])		
 	
+# all titles if there is no keywords list
+else :
+	
+	for i in news_items:
+		html += news_html.format(i['link'],i['title'],i['source'],i['pubDate'])
+
+
+
+# Write html file
+
+html_file = html_file.format(html)
+with open('lastNews.html','r+') as htmlfile:
+    data = htmlfile.read()
+    htmlfile.seek(0)
+    htmlfile.write(html_file)
+    htmlfile.truncate()
