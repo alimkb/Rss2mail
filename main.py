@@ -7,36 +7,11 @@
 #  
 # https://news.google.com/news/rss/headlines/section/topic/{topic}
 
-#install lxml : pip3 install lxml
-
+import config as cfg
 import requests
 from bs4 import BeautifulSoup
+import mailSender 
 
-
-
-
-urls = ['https://news.yahoo.com/rss/',
-        'https://news.google.com/news/rss']
-
-news_html = ''' <div>
-		<div style="background-color: #fffacc; padding: 5px;">
-		<div>
-		<h3><a href="{}" > {} </a></h3> 
-		</div>
-		</div>
-		<div style="background-color: #fffded; padding: 5px;">
-		 {} : {}  
-		</div>
-	    </div>'''
-
-html_file = ''' 
-	<html><head><title>Gathering News by title</title></head>
-	<body>
-	{}
-	</body>
-	</html>'''
-
-words = ['against']
 
 items = []
 
@@ -57,9 +32,9 @@ def fetch_rss(addr) :
 
 
 # main
-print(' Starting scraping :')
+print(' Start scraping ...')
 news_items = []
-for i in urls:
+for i in cfg.urls:
 	items = fetch_rss(i)
 	for item in items: 
 		news_item = {}
@@ -74,24 +49,29 @@ for i in urls:
 
 # make html with specific keywords in news titles 
 html = ''
-if words :
+if cfg.words :
 	for i in news_items:
-		if any(word in i['title'] for word in words):
-			html += news_html.format(i['link'],i['title'],i['source'],i['pubDate'])		
+		if any(word in i['title'] for word in cfg.words):
+			html += cfg.news_html.format(i['link'],i['title'],i['source'],i['pubDate'])		
 	
 # all titles if there is no keywords list
 else :
 	
 	for i in news_items:
-		html += news_html.format(i['link'],i['title'],i['source'],i['pubDate'])
+		html += cfg.news_html.format(i['link'],i['title'],i['source'],i['pubDate'])
 
 
 
 # Write html file
 
-html_file = html_file.format(html)
+html_file = cfg.html_file.format(html)
 with open('lastNews.html','r+') as htmlfile:
     data = htmlfile.read()
     htmlfile.seek(0)
     htmlfile.write(html_file)
     htmlfile.truncate()
+
+# send email 
+mailSender.sendEmail(html_file)
+
+print('Process finished.')
